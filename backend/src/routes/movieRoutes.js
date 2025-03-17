@@ -13,22 +13,47 @@ router.get('/all', async (request, response) => {
 });
 
 router.get('/search', async (request, response) => {
-    try{
-        const searchingName = request.query.title;
-        if(!searchingName){
-            return response.status(400).json({message: "Title query parameter is required"})
+    try {
+        if (!request.query.title && !request.query.genre && !request.query.rating && !request.query.releaseDate) {
+            return response.status(400).json({ message: "At least one search parameter is required (title, genre, rating, or releaseDate)" });
+        }//перевірка чи наявний хоч один параметр після search
+
+        const filters = {};
+
+        if (request.query.title) {
+            filters.title = { $regex: request.query.title, $options: 'i' }; //$options: 'i' для ігнорування регістру
         }
-        const movie = await Movie.find({
-            title: { $regex: searchingName, $options: 'i' }  // $regex для пошуку по частковому співпадінню, $options: 'i' для ігнорування регістру
-        })
-        if(movie.length === 0){
-            return response.status(404).json({message: "Movie not found"})
+
+        if (request.query.genre) {
+            filters.genre = { $regex: request.query.genre, $options: 'i' };
         }
-        response.json(movie)
-    }catch(err){
-        response.status(500).json({message: err.message})
+
+        if (request.query.rating) {
+            filters.rating = { $gte: parseFloat(request.query.rating) };
+        }
+
+        if (request.query.releaseDate) {
+            const releaseYear = new Date(request.query.releaseDate).getFullYear();//з дати отримаемо тільки рік
+
+            if (!releaseYear) {
+                return response.status(400).json({ message: "Invalid release date format" });
+            }
+
+            filters.releaseDate = { $gte: new Date(releaseYear, 0, 1), $lt: new Date(releaseYear + 1, 0, 1) };
+        }
+
+        const movies = await Movie.find(filters);
+
+        if (movies.length === 0) {
+            return response.status(404).json({ message: "Movies not found" });
+        }
+
+        response.json(movies);
+    } catch (err) {
+        response.status(500).json({ message: err.message });
     }
 });
+
 
 router.get('/:id', async(request, response) => {
     try{
@@ -41,6 +66,22 @@ router.get('/:id', async(request, response) => {
         response.status(500).json({message: err.message});
     }
 });
+
+router.delete('/delete/:id', async (request, response) => {
+    try{
+        const movieId = request.params.id;
+
+        const movie = await Movie.findByIdAndDelete(movieId);
+
+        if(!movie){
+            response.status(404).json({message: "Movie not found"})
+        }
+
+        response.json({message: `Movie with ID ${movieId} successfully deleted`})
+    }catch(err){
+        response.status(500).json({message: err.message});
+    }
+})
 
 router.post('/add', async (request, response) => {
     const movie = new Movie({
