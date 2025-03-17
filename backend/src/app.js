@@ -1,26 +1,18 @@
- const express = require('express');
- const mongoose = require('mongoose');
- require('dotenv').config(); //підключаємо dotenv для доуступу до файлу .env
- const cors = require('cors');
-const movieRoutes = require('./routes/movieRoutes'); //підключаємо файл маршрутів фільмів
+const express = require('express');
+const cors = require('cors');
+const movieRoutes = require('./routes/movieRoutes'); // Подключаем маршруты фильмов
 
 const app = express();
 
 app.use(cors());
 app.use(express.json()); // Обрабатываем JSON-запросы
 
-
-
- mongoose.connect("mongodb://localhost:27017/movies-app-ep-db")
-    .then(() => console.log("MongoDB successfully connected"))
-    .catch((err) => console.log("MongoDB connecting error", err))
-
-
-
-app.use('/api', movieRoutes);
-
-app.listen(5000, (err) => {
-    err ? console.log(`Something went wrong:${err}`) : console.log("Listening in progress")
+// Маршрут для главной страницы
+app.get('/', (request, response) => {
+    response.send("Главная страница");
 });
 
+// Маршруты для фильмов
+app.use('/movies', movieRoutes);
 
+module.exports = app;
