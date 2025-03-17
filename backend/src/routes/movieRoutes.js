@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router();
 const Movie = require('../models/movieModel');
-//const { request } = require('../app');
 
 router.get('/all', async (request, response) => {
     const page = parseInt(request.query.page) || 1;
@@ -101,10 +100,10 @@ router.post('/add', async (request, response) => {
     })
 
     try{
-        const newMovie = await movie.save(); // Сохраняем новый фильм
-        response.status(201).json(newMovie); // Отправляем ответ с новым фильмом
+        const newMovie = await movie.save();
+        response.status(201).json(newMovie);
     }catch(err){
-        response.status(400).json({ message: err.message }); // Обработка ошибки
+        response.status(400).json({ message: err.message });
     }
 })
 
