@@ -4,8 +4,14 @@ const Movie = require('../models/movieModel');
 //const { request } = require('../app');
 
 router.get('/all', async (request, response) => {
+    const page = parseInt(request.query.page) || 1;
+    const limit = 5;
+    const skip = (page - 1) * limit;
+
     try{
-        const movies = await Movie.find(); //find() для пошуку, без колбеку(для фільтрування) тому що отримуємо всі фільми
+        const movies = await Movie.find()
+            .skip(skip)
+            .limit(limit) //find() для пошуку, без колбеку(для фільтрування) тому що отримуємо всі фільми
         response.json(movies);  
     }catch(err){
         response.status(500).json({message: err.message});
